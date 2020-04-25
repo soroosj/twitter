@@ -1,0 +1,69 @@
+----
+   title: "Twitter Analysis"
+   author: "Joel Soroos"
+   date: "January 7, 2020"
+   output: html_document 
+---
+
+### 1. Source data
+```{r source, warning = TRUE, results = FALSE, message = FALSE}
+
+   library (tidyverse)
+   library (janitor) 
+   library (rtweet)
+
+   tweets_raw <- get_timeline("soroosj", n=1000)
+```
+   
+### 2. Transform data
+```{r transform, message = F}
+
+  library (lubridate)
+
+   tweets <- tweets_raw %>%
+      filter (is_retweet == FALSE) %>%
+      rename (
+         favorites = favorite_count,
+         retweets = retweet_count,
+         created = created_at
+         ) %>%
+      arrange (-favorites, -retweets) %>%
+      mutate (
+         text = str_extract(text, "^.{60}"),
+         created = as.Date(created),
+         rank = min_rank(-favorites),
+         year = year(created)
+         ) %>% 
+      filter(
+         #year == 2019,
+         is_retweet == FALSE
+         ) %>%
+      select (rank, text, favorites, retweets, created)
+   
+   tweets_agg <- tweets %>%
+      summarize (
+         n = n (),
+         favorites = sum(favorites),
+         retweets = sum (retweets)
+      )
+```
+
+#3a.  Visualize - text level
+```{r chart, warning = TRUE, message = FALSE}
+
+   library (kableExtra)
+
+   tweets %>%
+      head (12) %>%
+      kable () %>%
+      kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+
+#3b.  Visualize - aggregate level
+```{r}
+
+  tweets_agg %>%
+      kable () %>%
+      kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+```
