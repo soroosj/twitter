@@ -23,29 +23,32 @@
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
       rename (
-         favorites = favorite_count,
+         likes = favorite_count,
          retweets = retweet_count,
          created = created_at
          ) %>%
-      arrange (-favorites, -retweets) %>%
+      arrange (-likes, -retweets) %>%
       mutate (
-         text = str_extract(text, "^.{60}"),
+         text_length = str_length(text),
+         text = str_sub(text,1,60),
          created = as.Date(created),
-         rank = min_rank(-favorites),
+         rank = min_rank(-likes),
          year = year(created)
          ) %>% 
       filter(
          #year == 2019,
          is_retweet == FALSE
          ) %>%
-      select (rank, text, favorites, retweets, created)
+      select (rank, text, year, likes, retweets, created, text_length)
    
    tweets_agg <- tweets %>%
-      summarize (
-         n = n (),
-         favorites = sum(favorites),
-         retweets = sum (retweets)
-      )
+         group_by (year) %>%
+         summarize (
+            n = n (),
+            likes = sum(likes),
+            retweets = sum (retweets)
+            ) %>%
+         mutate(likes_per_tweet = round(likes/n,2))
 ```
 
 #3a.  Visualize - text level
@@ -54,7 +57,8 @@
    library (kableExtra)
 
    tweets %>%
-      head (12) %>%
+      head (20) %>%
+      select (-year) %>%
       kable () %>%
       kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 ```
@@ -64,6 +68,8 @@
 ```{r}
 
   tweets_agg %>%
+      group_by (year) %>%
+      arrange (-year) %>%
       kable () %>%
       kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 ```

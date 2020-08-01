@@ -184,13 +184,13 @@ summary {
 <table>
 <tbody>
 <tr class="odd">
-<td align="right">title: “Twitter Analysis”</td>
+<td align="right">title: &quot;Twitter Analysis&quot;</td>
 </tr>
 <tr class="even">
-<td align="right">author: “Joel Soroos”</td>
+<td align="right">author: &quot;Joel Soroos&quot;</td>
 </tr>
 <tr class="odd">
-<td align="right">date: “January 7, 2020”</td>
+<td align="right">date: &quot;January 7, 2020&quot;</td>
 </tr>
 <tr class="even">
 <td align="right">output: html_document</td>
@@ -218,7 +218,7 @@ summary {
          ) %&gt;%
       arrange (-favorites, -retweets) %&gt;%
       mutate (
-         text = str_extract(text, &quot;^.{60}&quot;),
+         text = str_extract(text, &quot;^.{70}&quot;),
          created = as.Date(created),
          rank = min_rank(-favorites),
          year = year(created)
@@ -241,7 +241,7 @@ summary {
 <pre class="r"><code>   library (kableExtra)
 
    tweets %&gt;%
-      head (12) %&gt;%
+      head (20) %&gt;%
       kable () %&gt;%
       kable_styling(bootstrap_options = &quot;striped&quot;, full_width = F, position = &quot;left&quot;)</code></pre>
 <table class="table table-striped" style="width: auto !important; ">
@@ -270,10 +270,10 @@ created
 1
 </td>
 <td style="text-align:left;">
-Total franchise revenues for largest animated film franchise
+Total franchise revenues for largest animated film franchises. Mercha
 </td>
 <td style="text-align:right;">
-58
+57
 </td>
 <td style="text-align:right;">
 13
@@ -287,10 +287,10 @@ Total franchise revenues for largest animated film franchise
 2
 </td>
 <td style="text-align:left;">
-Late week 4 #rstats #TidyTuesday with Spotify data. I sourc
+Late week 4 #rstats #TidyTuesday with Spotify data. I sourced persona
 </td>
 <td style="text-align:right;">
-36
+38
 </td>
 <td style="text-align:right;">
 8
@@ -304,7 +304,24 @@ Late week 4 #rstats #TidyTuesday with Spotify data. I sourc
 3
 </td>
 <td style="text-align:left;">
-This week’s R4DS #TidyTuesday submission - linear regression
+NA
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+2020-07-10
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+This week's R4DS #TidyTuesday submission - linear regression of vehicl
 </td>
 <td style="text-align:right;">
 29
@@ -318,10 +335,10 @@ This week’s R4DS #TidyTuesday submission - linear regression
 </tr>
 <tr>
 <td style="text-align:right;">
-4
+5
 </td>
 <td style="text-align:left;">
-UFO sightings in my birth state of North Carolina. The oblo
+UFO sightings in my birth state of North Carolina. The oblong shape o
 </td>
 <td style="text-align:right;">
 27
@@ -335,10 +352,10 @@ UFO sightings in my birth state of North Carolina. The oblo
 </tr>
 <tr>
 <td style="text-align:right;">
-5
+6
 </td>
 <td style="text-align:left;">
-This week’s #rstats #TidyTuesday submission is French train
+This week's #rstats #TidyTuesday submission is French train delays fro
 </td>
 <td style="text-align:right;">
 24
@@ -352,16 +369,16 @@ This week’s #rstats #TidyTuesday submission is French train
 </tr>
 <tr>
 <td style="text-align:right;">
-6
+7
 </td>
 <td style="text-align:left;">
-Hi #rsrats community - I am looking at attending one R confe
+Hi #rsrats community - I am looking at attending one R conference in 2
 </td>
 <td style="text-align:right;">
 23
 </td>
 <td style="text-align:right;">
-6
+5
 </td>
 <td style="text-align:left;">
 2019-12-09
@@ -369,10 +386,10 @@ Hi #rsrats community - I am looking at attending one R confe
 </tr>
 <tr>
 <td style="text-align:right;">
-6
+7
 </td>
 <td style="text-align:left;">
-Instead of new Tidy Tuesday data this week, I enhanced last
+Instead of new Tidy Tuesday data this week, I enhanced last week's Moo
 </td>
 <td style="text-align:right;">
 23
@@ -386,27 +403,10 @@ Instead of new Tidy Tuesday data this week, I enhanced last
 </tr>
 <tr>
 <td style="text-align:right;">
-8
+9
 </td>
 <td style="text-align:left;">
-Most popular dog breeds in Seattle with photos as axis label
-</td>
-<td style="text-align:right;">
-21
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:left;">
-2019-03-30
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:left;">
-My first #TidyTuesday #rstats submission! I learned how to
+My first #TidyTuesday #rstats submission! I learned how to create a f
 </td>
 <td style="text-align:right;">
 21
@@ -420,10 +420,10 @@ My first #TidyTuesday #rstats submission! I learned how to
 </tr>
 <tr>
 <td style="text-align:right;">
-8
+9
 </td>
 <td style="text-align:left;">
-Historical results for all 24 teams in the recent Women’s So
+Historical results for all 24 teams in the recent Women's Soccer World
 </td>
 <td style="text-align:right;">
 21
@@ -440,7 +440,7 @@ Historical results for all 24 teams in the recent Women’s So
 11
 </td>
 <td style="text-align:left;">
-This week’s R4DS #TidyTuesday submission - tracking squirrel
+This week's R4DS #TidyTuesday submission - tracking squirrel behavior
 </td>
 <td style="text-align:right;">
 20
@@ -454,10 +454,27 @@ This week’s R4DS #TidyTuesday submission - tracking squirrel
 </tr>
 <tr>
 <td style="text-align:right;">
-12
+11
 </td>
 <td style="text-align:left;">
-Red seems the most expensive wine (and my favorite). I shad
+Most popular dog breeds in Seattle with photos as axis labels! Thanks
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+2019-03-30
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:left;">
+Red seems the most expensive wine (and my favorite). I shaded the vio
 </td>
 <td style="text-align:right;">
 18
@@ -467,6 +484,125 @@ Red seems the most expensive wine (and my favorite). I shad
 </td>
 <td style="text-align:left;">
 2019-06-02
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:left;">
+My first attempt at the animated bar chart format popularized by <span class="citation">@jbur</span>
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+2019-08-31
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:left;">
+Maintaining a list of #rstats functions learned from #TidyTuesday on m
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+2019-05-24
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:left;">
+This week's R4DS #TidyTuesday submission - parking tickets in Philadel
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+2019-12-07
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:left;">
+Took a break from plotting and created a table using the kableExtra pa
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+2019-04-28
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:left;">
+I have my feet up at the beach ready to dig into my copy of Fundamenta
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+2019-05-11
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:left;">
+Ridgeline chart of student/ratio distributions by continent using #ggr
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+2019-05-18
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:left;">
+Average/dispersion of player outcomes in Grand Slam tournaments. I lea
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+2019-04-14
 </td>
 </tr>
 </tbody>
@@ -494,13 +630,13 @@ retweets
 <tbody>
 <tr>
 <td style="text-align:right;">
-130
+134
 </td>
 <td style="text-align:right;">
-586
+628
 </td>
 <td style="text-align:right;">
-119
+125
 </td>
 </tr>
 </tbody>
