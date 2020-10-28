@@ -5,15 +5,16 @@
    output: html_document 
 ---
 
+
 ### 1. Source data
 ```{r source, warning = TRUE, results = FALSE, message = FALSE}
 
    library (tidyverse)
-   library (janitor) 
    library (rtweet)
 
    tweets_raw <- get_timeline("soroosj", n=1000)
 ```
+ 
    
 ### 2. Transform data
 ```{r transform, message = F}
@@ -34,23 +35,14 @@
          year = year(created)
          ) %>% 
       filter(
-         #year == 2019,
          is_retweet == FALSE
          ) %>%
-      select (rank, text, year, likes, retweets, created)
-   
-   tweets_agg <- tweets %>%
-         group_by (year) %>%
-         summarize (
-            n = n (),
-            likes = sum(likes),
-            retweets = sum (retweets)
-            ) %>%
-         mutate(likes_per_tweet = round(likes/n,2))
+      select (text, year, likes, retweets, created)
 ```
 
-#3a.  Visualize - text level
-```{r chart, warning = TRUE, message = FALSE}
+
+### 3a. Visualize - top likes
+```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
 
@@ -59,15 +51,12 @@
       head (10) %>%
       mutate (rank = min_rank(-likes)) %>%
       select (-year) %>%
-      gt () %>%
-      kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+      gt () 
 ```
 
 
-#3b.  Visualize - text level
-```{r chart, warning = TRUE, message = FALSE}
-
-   library (gt)
+### 3b. Visualize - top retweets
+```{r chart_retweet, warning = TRUE, message = FALSE}
 
    tweets %>%
       arrange (-retweets, -likes) %>%
@@ -78,12 +67,17 @@
 ```
 
 
-#3c.  Visualize - aggregate level
-```{r}
+### 3c. Visualize - by year
+```{r chart_year}
 
-  tweets_agg %>%
+   tweets %>%
       group_by (year) %>%
+      summarize (
+         n = n (),
+         likes = sum(likes),
+         retweets = sum (retweets)
+         ) %>%
+      mutate(likes_per_tweet = round(likes/n,2)) %>%
       arrange (-year) %>%
-      kable () %>%
-      kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
+      gt () 
 ```
