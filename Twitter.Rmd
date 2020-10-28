@@ -27,19 +27,17 @@
          retweets = retweet_count,
          created = created_at
          ) %>%
-      arrange (-likes, -retweets) %>%
       mutate (
          text_length = str_length(text),
          text = str_sub(text,1,60),
          created = as.Date(created),
-         rank = min_rank(-likes),
          year = year(created)
          ) %>% 
       filter(
          #year == 2019,
          is_retweet == FALSE
          ) %>%
-      select (rank, text, year, likes, retweets, created, text_length)
+      select (rank, text, year, likes, retweets, created)
    
    tweets_agg <- tweets %>%
          group_by (year) %>%
@@ -54,17 +52,33 @@
 #3a.  Visualize - text level
 ```{r chart, warning = TRUE, message = FALSE}
 
-   library (kableExtra)
+   library (gt)
 
    tweets %>%
-      head (20) %>%
+      arrange (-likes, -retweets) %>%
+      head (10) %>%
+      mutate (rank = min_rank(-likes)) %>%
       select (-year) %>%
-      kable () %>%
+      gt () %>%
       kable_styling(bootstrap_options = "striped", full_width = F, position = "left")
 ```
 
 
-#3b.  Visualize - aggregate level
+#3b.  Visualize - text level
+```{r chart, warning = TRUE, message = FALSE}
+
+   library (gt)
+
+   tweets %>%
+      arrange (-retweets, -likes) %>%
+      head (10) %>%
+      mutate (rank = min_rank(-retweets)) %>%
+      select (rank, text, retweets, likes, created) %>%
+      gt () 
+```
+
+
+#3c.  Visualize - aggregate level
 ```{r}
 
   tweets_agg %>%
