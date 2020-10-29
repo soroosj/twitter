@@ -49,8 +49,9 @@
    tweets %>%
       arrange (-likes, -retweets) %>%
       head (10) %>%
-      mutate (rank = min_rank(-likes)) %>%
+      rowid_to_column("rank") %>%
       select (-year) %>%
+      relocate (rank) %>%
       gt () 
 ```
 
@@ -61,9 +62,9 @@
    tweets %>%
       arrange (-retweets, -likes) %>%
       head (10) %>%
-      mutate (rank = min_rank(-retweets)) %>%
+      rowid_to_column("rank") %>%
       select (rank, text, retweets, likes, created) %>%
-      gt () 
+      gt ()
 ```
 
 
