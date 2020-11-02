@@ -6,7 +6,7 @@
 ---
 
 
-### 1. Source data
+### 1a. Source tweets
 ```{r source, warning = TRUE, results = FALSE, message = FALSE}
 
    library (tidyverse)
@@ -14,9 +14,31 @@
 
    tweets_raw <- get_timeline("soroosj", n=1000)
 ```
+
+
+###1b. Source followers
+```{r}
+
+   followers <- "soroosj" %>%
+      get_followers() %>%
+      pull (user_id) %>%
+      lookup_users () %>%
+      select (user_id, screen_name, name, location, followers_count:favourites_count)
+```
+
+
+###1c. Source friends
+```{r}
+
+   friends <- "soroosj" %>%
+      get_friends() %>%
+      pull (user_id) %>%
+      lookup_users () %>%
+      select (user_id, screen_name, name, location, followers_count:favourites_count)
+```
  
    
-### 2. Transform data
+### 2. Transform timeline
 ```{r transform, message = F}
 
   library (lubridate)
