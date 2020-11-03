@@ -1,7 +1,7 @@
 ----
    title: "Twitter Analysis"
    author: "Joel Soroos"
-   date: "January 7, 2020"
+   date: "November 7, 2020"
    output: html_document 
 ---
 
@@ -24,6 +24,11 @@
       pull (user_id) %>%
       lookup_users () %>%
       select (user_id, screen_name, name, location, followers_count:favourites_count)
+
+   followers_nest <- followers %>%
+      nest (-screen_name) %>%
+      mutate (followers_2 = map (screen_name, get_followers)) %>%
+      unnest (data)
 ```
 
 
