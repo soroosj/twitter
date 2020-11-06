@@ -1,7 +1,7 @@
 ----
    title: "Twitter Analysis"
    author: "Joel Soroos"
-   date: "November 7, 2020"
+   date: "November 2, 2020"
    output: html_document 
 ---
 
@@ -12,34 +12,29 @@
    library (tidyverse)
    library (rtweet)
 
-   tweets_raw <- get_timeline("soroosj", n=1000)
+   # tweets_raw <- get_timeline("soroosj", n=1000)
 ```
 
 
 ###1b. Source followers
 ```{r}
 
+   # test <- function (x) {
+   #    get_friends(x, retryonratelimit = T) %>%
+   #    pull (user_id) %>%
+   #    lookup_users () %>%
+   #    count() 
+   #    }
+   # 
+   # # get_followers("soroosj")
+   # test ("soroosj")
+
    followers <- "soroosj" %>%
       get_followers() %>%
       pull (user_id) %>%
       lookup_users () %>%
-      select (user_id, screen_name, name, location, followers_count:favourites_count)
-
-   followers_nest <- followers %>%
-      nest (-screen_name) %>%
-      mutate (followers_2 = map (screen_name, get_followers)) %>%
-      unnest (data)
-```
-
-
-###1c. Source friends
-```{r}
-
-   friends <- "soroosj" %>%
-      get_friends() %>%
-      pull (user_id) %>%
-      lookup_users () %>%
-      select (user_id, screen_name, name, location, followers_count:favourites_count)
+      select (user_id, screen_name, name, location, followers_count)
+      #mutate (followers_2 = map (screen_name, test))
 ```
  
    
