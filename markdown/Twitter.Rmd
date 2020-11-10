@@ -98,3 +98,13 @@
          fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
 ```
 
+
+### 2e.  Visualize - top followers map
+```{r}
+
+   library (ggmap)
+   register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
+
+   followers_geo <- followers %>%
+      mutate_geocode (location)
+```
