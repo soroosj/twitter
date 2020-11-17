@@ -13,22 +13,22 @@
    library (tidyverse)
    library (lubridate)
 
-   tweets_raw <- get_timeline("soroosj", n=1000)
-   
-   tweets <- tweets_raw %>%
-      filter (is_retweet == FALSE) %>%
-      rename (
-         likes = favorite_count,
-         retweets = retweet_count,
-         created = created_at
-         ) %>%
-      mutate (
-         text_length = str_length(text),
-         text = str_sub(text,1,60),
-         created = as.Date(created),
-         year = year(created)
-         ) %>% 
-      select (text, year, likes, retweets, created)
+   tweets_raw <- get_timeline ("soroosj", n =10)
+
+   # tweets <- tweets_raw %>%
+   #    filter (is_retweet == FALSE) %>%
+   #    rename (
+   #       likes = favorite_count,
+   #       retweets = retweet_count,
+   #       created = created_at
+   #       ) %>%
+   #    mutate (
+   #       text_length = str_length(text),
+   #       text = str_sub(text,1,60),
+   #       created = as.Date(created),
+   #       year = year(created)
+   #       ) %>%
+   #    select (text, year, likes, retweets, created)
 ```
 
 
@@ -103,8 +103,21 @@
 ```{r}
 
    library (ggmap)
+
    register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
 
    followers_geo <- followers %>%
       mutate_geocode (location)
+```
+
+
+```{r}
+   
+   library (maps)
+
+   world <- map_data ("world")
+
+   ggplot () +
+      geom_map (data = world, map = world, aes (long, lat, map_id = region), fill = "lightgray", color = "black", size =0.05) +
+      geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75)
 ```
