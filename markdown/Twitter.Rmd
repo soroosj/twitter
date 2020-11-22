@@ -11,7 +11,9 @@
    
    library (rtweet)
 
-   tweets_raw <- get_timeline ("soroosj", n = 400)
+   twitter_user <- "soroosj"
+   sample <- 5
+
 ```
 
 
@@ -20,6 +22,8 @@
 
    library (tidyverse)
    library (lubridate)
+
+   tweets_raw <- get_timeline (twitter_user, n = sample)
 
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
@@ -45,7 +49,7 @@
 
    tweets %>%
       arrange (-likes, -retweets) %>%
-      head (10) %>%
+      head (sample) %>%
       rowid_to_column("rank") %>%
       select (-year) %>%
       relocate (rank) %>%
@@ -58,14 +62,14 @@
 
    tweets %>%
       arrange (-retweets, -likes) %>%
-      head (10) %>%
+      head (sample) %>%
       rowid_to_column("rank") %>%
       select (rank, text, retweets, likes, created) %>%
       gt ()
 ```
 
 
-### 2d. Visualize - tweets by year
+### 2d. Subtotal tweets by year
 ```{r chart_year}
 
    tweets_agg <-
@@ -76,7 +80,12 @@
          likes = sum(likes),
          retweets = sum (retweets)
          ) %>%
-      arrange (-year) 
+      arrange (-year)
+```
+
+
+###2e.  Visualize tweets by year
+```{r chart_year}
 
    ggplot (tweets_agg, aes (x = year, y =  likes)) +
       geom_col () +
@@ -95,7 +104,7 @@
 ###3a. Source followers
 ```{r}
 
-  followers <- "soroosj" %>%
+  followers <- twitter_user %>%
       get_followers() %>%
       pull (user_id) %>%
       lookup_users () %>%
@@ -109,7 +118,7 @@
 ```{r}
 
    followers %>%
-      head (10) %>%
+      head (sample) %>%
       select (rank, name, location, followers_count) %>%
       gt () %>%
          fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
@@ -124,7 +133,7 @@ library (ggmap)
    register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
 
    followers_geo <- followers %>%
-      #head (35) %>%
+      head (sample) %>%
       mutate_geocode (location, output = "more") %>%
       mutate (
          country = word (address, -1,-1),
@@ -168,7 +177,7 @@ library (ggmap)
 ###4a. Source friends
 ```{r}
 
-  friends <- "soroosj" %>%
+  friends <- twitter_user %>%
       get_friends() %>%
       pull (user_id) %>%
       lookup_users () %>%
@@ -182,7 +191,7 @@ library (ggmap)
 ```{r}
 
    friends %>%
-      head (10) %>%
+      head (sample) %>%
       select (rank, name, location, followers_count) %>%
       gt () %>%
          fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
@@ -194,7 +203,6 @@ Twitter provides a location for each user which can be converted using the Googl
 ```{r message = F}
 
    friends_geo <- friends %>%
-      #head (35) %>%
       mutate_geocode (location, output = "more") %>%
       mutate (
          country = word (address, -1,-1),
@@ -217,7 +225,7 @@ Twitter provides a location for each user which can be converted using the Googl
       geom_label (aes(label = n)) +
       coord_flip () +
       theme_minimal() +
-      labs (x="", y = "Followers")
+      labs (x="", y = "Friends")
 ```
 
 
