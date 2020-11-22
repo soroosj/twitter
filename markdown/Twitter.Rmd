@@ -1,19 +1,25 @@
 ----
    title: "Twitter Analysis"
    author: "Joel Soroos"
-   date: "November 2, 2020"
+   date: "November 22, 2020"
    output: html_document 
 ---
 
 
 ### 1a. Source tweets
 ```{r source, warning = TRUE, results = FALSE, message = FALSE}
-
+   
    library (rtweet)
-   library (tidyverse)
-   library (lubridate)
 
    tweets_raw <- get_timeline ("soroosj", n = 400)
+```
+
+
+#2a.  Transform retweets
+```{r source, warning = TRUE, results = FALSE, message = FALSE}
+
+   library (tidyverse)
+   library (lubridate)
 
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
@@ -32,9 +38,7 @@
 ```
 
 
-
-
-### 2a. Visualize - top liked tweets
+### 2b. Visualize - top liked tweets
 ```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
@@ -49,7 +53,7 @@
 ```
 
 
-### 2b. Visualize - top retweets
+### 2c. Visualize - top retweeted tweets
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
    tweets %>%
@@ -61,19 +65,30 @@
 ```
 
 
-### 2c. Visualize - tweets by year
+### 2d. Visualize - tweets by year
 ```{r chart_year}
 
-   tweets %>%
+   tweets_agg <-
+      tweets %>%
       group_by (year) %>%
       summarize (
          n = n (),
          likes = sum(likes),
          retweets = sum (retweets)
          ) %>%
-      mutate(likes_per_tweet = round(likes/n,2)) %>%
-      arrange (-year) %>%
-      gt () 
+      arrange (-year) 
+
+   ggplot (tweets_agg, aes (x = year, y =  likes)) +
+      geom_col () +
+      geom_label (aes(label = likes)) +
+      theme_minimal() +
+      labs (x="", y = "Likes")
+   
+   ggplot (tweets_agg, aes (x = year, y =  retweets)) +
+      geom_col () +
+      geom_label (aes(label = retweets)) +
+      theme_minimal() +
+      labs (x="", y = "Retweets")
 ```
 
 
@@ -120,7 +135,7 @@ library (ggmap)
 ```
 
 
-#3d.  by country
+#3d.  Followers by country
 ```{r message = F}
 
    followers_agg <- followers_geo %>%
@@ -136,7 +151,7 @@ library (ggmap)
 ```
 
 
-#3e.  map
+#3e. Followers map
 ```{r}
    
    library (maps)
@@ -148,3 +163,70 @@ library (ggmap)
       geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
       theme_grey ()
 ```
+
+
+###4a. Source friends
+```{r}
+
+  friends <- "soroosj" %>%
+      get_friends() %>%
+      pull (user_id) %>%
+      lookup_users () %>%
+      select (screen_name, name, location, followers_count) %>%
+      arrange (-followers_count) %>%
+      rowid_to_column("rank")
+```
+
+
+### 4b.  Visualize - top friends
+```{r}
+
+   friends %>%
+      head (10) %>%
+      select (rank, name, location, followers_count) %>%
+      gt () %>%
+         fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
+```
+
+
+###4c.  Friends geocodes
+Twitter provides a location for each user which can be converted using the Google Maps API to geographic coordinates for mapping.  
+```{r message = F}
+
+   friends_geo <- friends %>%
+      #head (35) %>%
+      mutate_geocode (location, output = "more") %>%
+      mutate (
+         country = word (address, -1,-1),
+         country = str_to_upper(country),
+         country = ifelse(is.na(country), "NOT LISTED", country)
+         ) %>%
+      select (rank:followers_count, country, lon, lat) 
+```
+
+
+#4d.  Friends by country
+```{r message = F}
+
+   friends_agg <- friends_geo %>%
+      count (country) %>%
+      arrange (-n)
+   
+   ggplot (friends_agg, aes (x = reorder(country, n), y = n)) +
+      geom_col () +
+      geom_label (aes(label = n)) +
+      coord_flip () +
+      theme_minimal() +
+      labs (x="", y = "Followers")
+```
+
+
+#4e. Friends map
+```{r}
+
+   ggplot () +
+      geom_map (data = world, map = world, aes (long, lat, map_id = region), fill = "lightgray", color = "black", size =0.05) +
+      geom_point (data = friends_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
+      theme_grey ()
+```
+
