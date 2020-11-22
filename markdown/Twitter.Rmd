@@ -13,37 +13,26 @@
    library (tidyverse)
    library (lubridate)
 
-   tweets_raw <- get_timeline ("soroosj", n =10)
+   tweets_raw <- get_timeline ("soroosj")
 
-   # tweets <- tweets_raw %>%
-   #    filter (is_retweet == FALSE) %>%
-   #    rename (
-   #       likes = favorite_count,
-   #       retweets = retweet_count,
-   #       created = created_at
-   #       ) %>%
-   #    mutate (
-   #       text_length = str_length(text),
-   #       text = str_sub(text,1,60),
-   #       created = as.Date(created),
-   #       year = year(created)
-   #       ) %>%
-   #    select (text, year, likes, retweets, created)
+   tweets <- tweets_raw %>%
+      filter (is_retweet == FALSE) %>%
+      rename (
+         likes = favorite_count,
+         retweets = retweet_count,
+         created = created_at
+         ) %>%
+      mutate (
+         text_length = str_length(text),
+         text = str_sub(text,1,60),
+         created = as.Date(created),
+         year = year(created)
+         ) %>%
+      select (text, year, likes, retweets, created)
 ```
 
 
-###1b. Source followers
-```{r}
 
-  followers <- "soroosj" %>%
-      get_followers() %>%
-      pull (user_id) %>%
-      lookup_users () %>%
-      select (screen_name, name, location, followers_count) %>%
-      arrange (-followers_count) %>%
-      rowid_to_column("rank")
-```
- 
 
 ### 2a. Visualize - top liked tweets
 ```{r chart_likes, warning = TRUE, message = FALSE}
@@ -88,7 +77,20 @@
 ```
 
 
-### 2d.  Visualize - top followers
+###3a. Source followers
+```{r}
+
+  followers <- "soroosj" %>%
+      get_followers() %>%
+      pull (user_id) %>%
+      lookup_users () %>%
+      select (screen_name, name, location, followers_count) %>%
+      arrange (-followers_count) %>%
+      rowid_to_column("rank")
+```
+
+
+### 3b.  Visualize - top followers
 ```{r}
 
    followers %>%
@@ -99,18 +101,32 @@
 ```
 
 
-### 2e.  Visualize - top followers map
-```{r}
-
-   library (ggmap)
+###3c.  Geographic distribution of followers
+Twitter provides a location for each user which can be converted using the Google Maps API to geographic coordinates for mapping.  
+```{r message = F}
+library (ggmap)
 
    register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
 
    followers_geo <- followers %>%
-      mutate_geocode (location)
+      head (15) %>%
+      mutate_geocode (location, output = "more") %>%
+      mutate (country = word (address, -1,-1)) %>%
+      select (rank:followers_count, country, lon, lat) 
 ```
 
 
+#3d.  by country
+```{r message = F}
+
+   ggplot (followers_geo, aes (x = reorder(country, followers_count), y = followers_count)) +
+      geom_col () +
+      coord_flip () +
+      theme_minimal()
+```
+
+
+#3e.  map
 ```{r}
    
    library (maps)
@@ -119,5 +135,6 @@
 
    ggplot () +
       geom_map (data = world, map = world, aes (long, lat, map_id = region), fill = "lightgray", color = "black", size =0.05) +
-      geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75)
+      geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
+      theme_classic ()
 ```
