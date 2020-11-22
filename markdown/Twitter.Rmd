@@ -13,7 +13,7 @@
    library (tidyverse)
    library (lubridate)
 
-   tweets_raw <- get_timeline ("soroosj")
+   tweets_raw <- get_timeline ("soroosj", n = 400)
 
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
@@ -109,9 +109,13 @@ library (ggmap)
    register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
 
    followers_geo <- followers %>%
-      head (15) %>%
+      #head (35) %>%
       mutate_geocode (location, output = "more") %>%
-      mutate (country = word (address, -1,-1)) %>%
+      mutate (
+         country = word (address, -1,-1),
+         country = str_to_upper(country),
+         country = ifelse(is.na(country), "NOT LISTED", country)
+         ) %>%
       select (rank:followers_count, country, lon, lat) 
 ```
 
@@ -119,10 +123,16 @@ library (ggmap)
 #3d.  by country
 ```{r message = F}
 
-   ggplot (followers_geo, aes (x = reorder(country, followers_count), y = followers_count)) +
+   followers_agg <- followers_geo %>%
+      count (country) %>%
+      arrange (-n)
+   
+   ggplot (followers_agg, aes (x = reorder(country, n), y = n)) +
       geom_col () +
+      geom_label (aes(label = n)) +
       coord_flip () +
-      theme_minimal()
+      theme_minimal() +
+      labs (x="", y = "Followers")
 ```
 
 
@@ -136,5 +146,5 @@ library (ggmap)
    ggplot () +
       geom_map (data = world, map = world, aes (long, lat, map_id = region), fill = "lightgray", color = "black", size =0.05) +
       geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
-      theme_classic ()
+      theme_grey ()
 ```
