@@ -1,29 +1,45 @@
-----
-   title: "Twitter Analysis"
-   author: "Joel Soroos"
-   date: "November 22, 2020"
-   output: html_document 
+---
+title: Twitter
+author: Joel Soroos
+date: '2020-11-22'
+slug: twitter
+categories: []
+tags:
+  - tidyverse
+  - r
+  - rstats
+  - gt
+  - rtweet
+  - ggmap
 ---
 
 
-### 1a. Source tweets
-```{r source, warning = TRUE, results = FALSE, message = FALSE}
+### Motivation
+The goal of this blog is to analyze Twitter posts and followers for a given handle.  We will analyze the geographic distribution of followers by accessing the Google Maps API via the ggmaps package/
+
+### 1. Setup
+```{r , warning = TRUE, results = FALSE, message = FALSE}
    
    library (rtweet)
 
    twitter_user <- "soroosj"
-   sample <- 5
+   sample <- 15
 
 ```
 
 
-#2a.  Transform retweets
-```{r source, warning = TRUE, results = FALSE, message = FALSE}
-
+### 2a. Source tweets
+```{r , warning = TRUE, message = FALSE}
+   
    library (tidyverse)
    library (lubridate)
 
    tweets_raw <- get_timeline (twitter_user, n = sample)
+```
+
+
+### 2b. Transform tweets
+```{r , warning = TRUE, message = FALSE}
 
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
@@ -42,14 +58,15 @@
 ```
 
 
-### 2b. Visualize - top liked tweets
+### 2c. Visualize - top liked tweets
+We will sort by most likes and rank via the dplyr row_to_column formula.  The GT package formats in a easy-to-read manner.
 ```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
 
    tweets %>%
       arrange (-likes, -retweets) %>%
-      head (sample) %>%
+      head (10) %>%
       rowid_to_column("rank") %>%
       select (-year) %>%
       relocate (rank) %>%
@@ -57,20 +74,21 @@
 ```
 
 
-### 2c. Visualize - top retweeted tweets
+### 2d. Top retweeted tweets
+We will re-sort and re-rank by retweets, again using the GT package to cleanly format.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
    tweets %>%
       arrange (-retweets, -likes) %>%
-      head (sample) %>%
+      head (10) %>%
       rowid_to_column("rank") %>%
       select (rank, text, retweets, likes, created) %>%
       gt ()
 ```
 
 
-### 2d. Subtotal tweets by year
-```{r chart_year}
+### 2e. Subtotal tweets by year
+```{r chart_year, warning = F, message =F}
 
    tweets_agg <-
       tweets %>%
@@ -81,18 +99,25 @@
          retweets = sum (retweets)
          ) %>%
       arrange (-year)
+
+   tweets_agg
 ```
 
 
-###2e.  Visualize tweets by year
-```{r chart_year}
+### 2f. Subtotaling retweets by year
+```{r warning = F, message =F}
 
    ggplot (tweets_agg, aes (x = year, y =  likes)) +
       geom_col () +
       geom_label (aes(label = likes)) +
       theme_minimal() +
       labs (x="", y = "Likes")
-   
+```
+
+
+### 2g. Subtotaling retweets by year
+```{r warning = F, message =F}
+
    ggplot (tweets_agg, aes (x = year, y =  retweets)) +
       geom_col () +
       geom_label (aes(label = retweets)) +
@@ -101,8 +126,8 @@
 ```
 
 
-###3a. Source followers
-```{r}
+### 3a. Source followers
+```{r warning = F, message =F}
 
   followers <- twitter_user %>%
       get_followers() %>%
@@ -114,21 +139,22 @@
 ```
 
 
-### 3b.  Visualize - top followers
-```{r}
+### 3b. Top followers
+```{r warning = F, message =F}
 
    followers %>%
-      head (sample) %>%
+      head (10) %>%
       select (rank, name, location, followers_count) %>%
       gt () %>%
          fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
 ```
 
 
-###3c.  Geographic distribution of followers
+### 3c. Obtain geographic attributes
 Twitter provides a location for each user which can be converted using the Google Maps API to geographic coordinates for mapping.  
-```{r message = F}
-library (ggmap)
+```{r warning = F, message =F}
+   
+   library (ggmap)
 
    register_google(key = Sys.getenv("GOOGLE_MAPS_API"))
 
@@ -141,11 +167,13 @@ library (ggmap)
          country = ifelse(is.na(country), "NOT LISTED", country)
          ) %>%
       select (rank:followers_count, country, lon, lat) 
+   
+   followers_geo
 ```
 
 
-#3d.  Followers by country
-```{r message = F}
+### 3d. Followers by country
+```{r warning = F, message =F}
 
    followers_agg <- followers_geo %>%
       count (country) %>%
@@ -160,8 +188,8 @@ library (ggmap)
 ```
 
 
-#3e. Followers map
-```{r}
+### 3e. Followers map
+```{r warning = F, message =F}
    
    library (maps)
 
@@ -172,69 +200,3 @@ library (ggmap)
       geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
       theme_grey ()
 ```
-
-
-###4a. Source friends
-```{r}
-
-  friends <- twitter_user %>%
-      get_friends() %>%
-      pull (user_id) %>%
-      lookup_users () %>%
-      select (screen_name, name, location, followers_count) %>%
-      arrange (-followers_count) %>%
-      rowid_to_column("rank")
-```
-
-
-### 4b.  Visualize - top friends
-```{r}
-
-   friends %>%
-      head (sample) %>%
-      select (rank, name, location, followers_count) %>%
-      gt () %>%
-         fmt_number (columns = vars(followers_count), use_seps = T, decimals = 0)
-```
-
-
-###4c.  Friends geocodes
-Twitter provides a location for each user which can be converted using the Google Maps API to geographic coordinates for mapping.  
-```{r message = F}
-
-   friends_geo <- friends %>%
-      mutate_geocode (location, output = "more") %>%
-      mutate (
-         country = word (address, -1,-1),
-         country = str_to_upper(country),
-         country = ifelse(is.na(country), "NOT LISTED", country)
-         ) %>%
-      select (rank:followers_count, country, lon, lat) 
-```
-
-
-#4d.  Friends by country
-```{r message = F}
-
-   friends_agg <- friends_geo %>%
-      count (country) %>%
-      arrange (-n)
-   
-   ggplot (friends_agg, aes (x = reorder(country, n), y = n)) +
-      geom_col () +
-      geom_label (aes(label = n)) +
-      coord_flip () +
-      theme_minimal() +
-      labs (x="", y = "Friends")
-```
-
-
-#4e. Friends map
-```{r}
-
-   ggplot () +
-      geom_map (data = world, map = world, aes (long, lat, map_id = region), fill = "lightgray", color = "black", size =0.05) +
-      geom_point (data = friends_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
-      theme_grey ()
-```
-
