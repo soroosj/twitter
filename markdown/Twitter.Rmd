@@ -15,9 +15,10 @@ tags:
 
 
 ### Motivation
-The goal of this blog is to analyze Twitter posts and followers for a given handle.  We will analyze the geographic distribution of followers by accessing the Google Maps API via the ggmaps package/
+The goal of this blog is to source and analyze Twitter posts and followers for a given handle using R.  We will calculate the geographic distribution of followers by accessing the [Google Maps API](https://developers.google.com/maps/documentation) via the [ggmaps package](https://cran.r-project.org/web/packages/ggmap/ggmap.pdf), then visualize tables with the [gt package](https://gt.rstudio.com/) and charts with the [ggplot package](https://ggplot2.tidyverse.org/).
 
 ### 1. Setup
+First step is to load the rtweet package to obtain tweet and follower data from the Twitter API.  You will need to obtain an access token  by following steps [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html).
 ```{r , warning = TRUE, results = FALSE, message = FALSE}
    
    library (rtweet)
