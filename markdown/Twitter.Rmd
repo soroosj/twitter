@@ -15,32 +15,47 @@ tags:
 
 
 ### Motivation
-The goal of this blog is to source and analyze Twitter posts and followers for a given handle using R.  We will calculate the geographic distribution of followers by accessing the [Google Maps API](https://developers.google.com/maps/documentation) via the [ggmaps package](https://cran.r-project.org/web/packages/ggmap/ggmap.pdf), then visualize tables with the [gt package](https://gt.rstudio.com/) and charts with the [ggplot package](https://ggplot2.tidyverse.org/).
+The goal is to source and analyze Twitter posts and followers for a given Twitter account ("handle") using R.  We will identify tweets with most likes and retweets, as well as analyze postings over time.  We will also calculate the geographic distribution of followers by accessing the Google Maps API via then visualize tables with the gt package and charts with ggplot.
 
 ### 1. Setup
-First step is to load the rtweet package to obtain tweet and follower data from the Twitter API.  You will need to obtain an access token  by following steps [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html).
+First step is to install and load the R [rtweet](https://cran.r-project.org/web/packages/rtweet/rtweet.pdf) package by Michael Kearney. 
+
+You will then need to obtain a free Twitter API access token.  Follow steps [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html) to apply for free Twitter developer access.
+
+We will extract Twitter data multiple times so I have created two variables to avoid duplicate entry and inconsistencies.  One variable stores the Twitter handle.  The other variable "sample" specifies the number of returned records because some Twitter accounts have large volumes of followers and tweets.
+
 ```{r , warning = TRUE, results = FALSE, message = FALSE}
    
    library (rtweet)
 
    twitter_user <- "soroosj"
-   sample <- 15
-
+   sample <- 50
 ```
 
 
-### 2a. Source tweets
-```{r , warning = TRUE, message = FALSE}
-   
-   library (tidyverse)
-   library (lubridate)
+### 2. Source tweets
+Now we will transition to extracting our first set of Twitter data, which will be tweets from our specified account.
+
+The get_timeline function contains 90 fields on each tweet.
+```{r , warning = FALSE, message = FALSE}
+
+   library (skimr)
 
    tweets_raw <- get_timeline (twitter_user, n = sample)
+
+   skim (tweets_raw)
 ```
 
 
-### 2b. Transform tweets
+Many of the fields are not needed for this exercise so I have culled the dataset accordingly.  I have also renamed several fields for brevity and to more standard Twitter notation (i.e. likes instead of favorites).
+
+I have decided to focus the analysis on native tweets so have filtered out retweets.
+
+I have extracted year from the creation date to enable summarizing tweet volume by year.  Also, I have truncated the Tweet text from 280 to 60 characters so fits more cleanly in a table. 
 ```{r , warning = TRUE, message = FALSE}
+
+   library (tidyverse)
+   library (lubridate)
 
    tweets <- tweets_raw %>%
       filter (is_retweet == FALSE) %>%
@@ -50,7 +65,6 @@ First step is to load the rtweet package to obtain tweet and follower data from 
          created = created_at
          ) %>%
       mutate (
-         text_length = str_length(text),
          text = str_sub(text,1,60),
          created = as.Date(created),
          year = year(created)
@@ -59,8 +73,9 @@ First step is to load the rtweet package to obtain tweet and follower data from 
 ```
 
 
-### 2c. Visualize - top liked tweets
-We will sort by most likes and rank via the dplyr row_to_column formula.  The GT package formats in a easy-to-read manner.
+We will sort by most liked tweets over time and rank via the dplyr row_to_column formula.
+
+The [gt package](https://gt.rstudio.com/) by Richard Iannone formats in a easy-to-read manner.  The core gt::gt function adds lines between rows; many other formatting tweaks are also available but out of scope for this blog.
 ```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
@@ -75,7 +90,6 @@ We will sort by most likes and rank via the dplyr row_to_column formula.  The GT
 ```
 
 
-### 2d. Top retweeted tweets
 We will re-sort and re-rank by retweets, again using the GT package to cleanly format.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
@@ -88,7 +102,7 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
 ```
 
 
-### 2e. Subtotal tweets by year
+Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets with corresponding likes and retweets.
 ```{r chart_year, warning = F, message =F}
 
    tweets_agg <-
@@ -101,11 +115,12 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
          ) %>%
       arrange (-year)
 
-   tweets_agg
+   tweets_agg %>%
+      gt()
 ```
 
 
-### 2f. Subtotaling retweets by year
+We can then use R's ggplot package to visualize by likes...
 ```{r warning = F, message =F}
 
    ggplot (tweets_agg, aes (x = year, y =  likes)) +
@@ -116,7 +131,7 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
 ```
 
 
-### 2g. Subtotaling retweets by year
+retweets...
 ```{r warning = F, message =F}
 
    ggplot (tweets_agg, aes (x = year, y =  retweets)) +
@@ -124,6 +139,17 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
       geom_label (aes(label = retweets)) +
       theme_minimal() +
       labs (x="", y = "Retweets")
+```
+
+
+and number of tweets.
+```{r warning = F, message =F}
+
+   ggplot (tweets_agg, aes (x = year, y = n)) +
+      geom_col () +
+      geom_label (aes(label = n)) +
+      theme_minimal() +
+      labs (x="", y = "Number of tweets")
 ```
 
 
@@ -137,10 +163,13 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
       select (screen_name, name, location, followers_count) %>%
       arrange (-followers_count) %>%
       rowid_to_column("rank")
+
+   skim (followers)
 ```
 
 
 ### 3b. Top followers
+[gt package](https://gt.rstudio.com/) and charts with ggplot.
 ```{r warning = F, message =F}
 
    followers %>%
@@ -152,7 +181,9 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
 
 
 ### 3c. Obtain geographic attributes
-Twitter provides a location for each user which can be converted using the Google Maps API to geographic coordinates for mapping.  
+Twitter provides a location for each user which can be converted using the [Google Maps API](https://developers.google.com/maps/documentation)  to geographic coordinates for mapping.  
+
+[ggmaps package](https://cran.r-project.org/web/packages/ggmap/ggmap.pdf), 
 ```{r warning = F, message =F}
    
    library (ggmap)
