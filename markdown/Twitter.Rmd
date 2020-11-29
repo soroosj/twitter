@@ -14,44 +14,43 @@ tags:
 ---
 
 
-### Motivation
-The goal is to source and analyze Twitter posts and followers for a given Twitter account ("handle") using R.  We will identify tweets with most likes and retweets, as well as analyze postings over time.  We will also calculate the geographic distribution of followers by accessing the Google Maps API via then visualize tables with the gt package and charts with ggplot.
+## Purpose
+The goal of this post is to source and analyze Twitter posts and followers for a given Twitter account ("handle") using R.  We will identify tweets with the most likes and retweets, as well as analyze posting trends over time.  We will also calculate the geographic distribution of Twitter followers via the Google Maps API.  
 
-### 1. Setup
-First step is to install and load the R [rtweet](https://cran.r-project.org/web/packages/rtweet/rtweet.pdf) package by Michael Kearney. 
+## 1. Setup
 
-You will then need to obtain a free Twitter API access token.  Follow steps [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html) to apply for free Twitter developer access.
+First, we need to obtain and authorize a free Twitter Developer account (instructions [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html)).
 
-We will extract Twitter data multiple times so I have created two variables to avoid duplicate entry and inconsistencies.  One variable stores the Twitter handle.  The other variable "sample" specifies the number of returned records because some Twitter accounts have large volumes of followers and tweets.
+Second step is to install and load the R [rtweet](https://cran.r-project.org/web/packages/rtweet/rtweet.pdf) package by Michael Kearney. 
+
+We will extract Twitter data multiple times so I have created two variables to avoid duplication and inconsistencies.  The "twitter_user" variable stores the Twitter handle.  The "sample" variable specifies the number of extracted records as some Twitter accounts have large volumes of followers and tweets.
 
 ```{r , warning = TRUE, results = FALSE, message = FALSE}
    
    library (rtweet)
 
    twitter_user <- "soroosj"
-   sample <- 50
+   sample <- 105
 ```
 
 
-### 2. Source tweets
-Now we will transition to extracting our first set of Twitter data, which will be tweets from our specified account.
+## 2. Tweets
+#### Source tweets
+Now we will extract our first set of Twitter data, which will be tweets from our specified account.  The get_timeline function contains 90 fields on each tweet.  
 
-The get_timeline function contains 90 fields on each tweet.
 ```{r , warning = FALSE, message = FALSE}
 
-   library (skimr)
-
    tweets_raw <- get_timeline (twitter_user, n = sample)
-
-   skim (tweets_raw)
 ```
 
 
-Many of the fields are not needed for this exercise so I have culled the dataset accordingly.  I have also renamed several fields for brevity and to more standard Twitter notation (i.e. likes instead of favorites).
+#### Transform Tweets
+Many fields are not needed for this exercise so we can cull the dataset.  I have also renamed several fields for brevity and to more standard Twitter notation (i.e. likes instead of favorites).
 
-I have decided to focus the analysis on native tweets so have filtered out retweets.
+We are focusing on original tweets so have filtered out retweets.
 
-I have extracted year from the creation date to enable summarizing tweet volume by year.  Also, I have truncated the Tweet text from 280 to 60 characters so fits more cleanly in a table. 
+I have extracted year from the creation date to enable summarizing tweet volume by year.  Also, I have truncated the Tweet text field from 280 to 60 characters so more cleanly fits in a formatted table. 
+
 ```{r , warning = TRUE, message = FALSE}
 
    library (tidyverse)
@@ -73,9 +72,10 @@ I have extracted year from the creation date to enable summarizing tweet volume 
 ```
 
 
+#### Most liked tweets of all time  
 We will sort by most liked tweets over time and rank via the dplyr row_to_column formula.
 
-The [gt package](https://gt.rstudio.com/) by Richard Iannone formats in a easy-to-read manner.  The core gt::gt function adds lines between rows; many other formatting tweaks are also available but out of scope for this blog.
+The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a easy-to-read manner.  The core gt::gt function adds lines between rows.  Many other table formatting enhancements are available but out of scope for this blog.
 ```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
@@ -89,8 +89,8 @@ The [gt package](https://gt.rstudio.com/) by Richard Iannone formats in a easy-t
       gt () 
 ```
 
-
-We will re-sort and re-rank by retweets, again using the GT package to cleanly format.
+#### Most retweeted tweets of all time  
+Next we will re-sort and re-rank by retweets, again using the GT package to cleanly format.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
    tweets %>%
@@ -102,47 +102,8 @@ We will re-sort and re-rank by retweets, again using the GT package to cleanly f
 ```
 
 
-Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets with corresponding likes and retweets.
-```{r chart_year, warning = F, message =F}
-
-   tweets_agg <-
-      tweets %>%
-      group_by (year) %>%
-      summarize (
-         n = n (),
-         likes = sum(likes),
-         retweets = sum (retweets)
-         ) %>%
-      arrange (-year)
-
-   tweets_agg %>%
-      gt()
-```
-
-
-We can then use R's ggplot package to visualize by likes...
-```{r warning = F, message =F}
-
-   ggplot (tweets_agg, aes (x = year, y =  likes)) +
-      geom_col () +
-      geom_label (aes(label = likes)) +
-      theme_minimal() +
-      labs (x="", y = "Likes")
-```
-
-
-retweets...
-```{r warning = F, message =F}
-
-   ggplot (tweets_agg, aes (x = year, y =  retweets)) +
-      geom_col () +
-      geom_label (aes(label = retweets)) +
-      theme_minimal() +
-      labs (x="", y = "Retweets")
-```
-
-
-and number of tweets.
+#### Tweet trends
+Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets by year.
 ```{r warning = F, message =F}
 
    ggplot (tweets_agg, aes (x = year, y = n)) +
@@ -155,6 +116,8 @@ and number of tweets.
 
 ### 3a. Source followers
 ```{r warning = F, message =F}
+
+   library(skimr)
 
   followers <- twitter_user %>%
       get_followers() %>%
