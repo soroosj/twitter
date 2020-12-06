@@ -34,8 +34,8 @@ We will extract Twitter data multiple times so I have created two variables to a
 ```
 
 
-## 2. Tweets
-#### Source tweets
+## 2. Analyze number of tweets
+### Source tweets
 Now we will extract our first set of Twitter data, which will be tweets from our specified account.  The get_timeline function contains 90 fields on each tweet.  
 
 ```{r , warning = FALSE, message = FALSE}
@@ -44,7 +44,7 @@ Now we will extract our first set of Twitter data, which will be tweets from our
 ```
 
 
-#### Transform Tweets
+### Transform Tweets
 Many fields are not needed for this exercise so we can cull the dataset.  I have also renamed several fields for brevity and to more standard Twitter notation (i.e. likes instead of favorites).
 
 We are focusing on original tweets so have filtered out retweets.
@@ -72,7 +72,7 @@ I have extracted year from the creation date to enable summarizing tweet volume 
 ```
 
 
-#### Most liked tweets of all time  
+### Most liked tweets of all time  
 We will sort by most liked tweets over time and rank via the dplyr row_to_column formula.
 
 The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a easy-to-read manner.  The core gt::gt function adds lines between rows.  Many other table formatting enhancements are available but out of scope for this blog.
@@ -89,7 +89,7 @@ The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a
       gt () 
 ```
 
-#### Most retweeted tweets of all time  
+### Most retweeted tweets of all time  
 Next we will re-sort and re-rank by retweets, again using the GT package to cleanly format.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
@@ -102,19 +102,28 @@ Next we will re-sort and re-rank by retweets, again using the GT package to clea
 ```
 
 
-#### Tweet trends
+### Tweet trends
 Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets by year.
 ```{r warning = F, message =F}
 
-   ggplot (tweets_agg, aes (x = year, y = n)) +
-      geom_col () +
-      geom_label (aes(label = n)) +
-      theme_minimal() +
-      labs (x="", y = "Number of tweets")
+   tweets %>%
+      group_by (year) %>%
+      count () %>%
+      ggplot (aes (x = year, y = n)) +
+         geom_col () +
+         geom_label (aes(label = n)) +
+         theme_minimal() +
+         labs (x="", y = "Number of tweets")
 ```
 
 
-### 3a. Source followers
+## 3. Analyze followers
+Learning about followers for a Twitter handle is also frequently useful.
+
+Two rtweet package functions are helpful here.  First, get_followers returns a vector of Twitter user_ids of followers.  The lookup_users function then extracts user attributes such as screen name, physical location (if supplied in profile) and number of  followers.  
+
+We will also add a row ID ranking each follower by largest number of followers via dplyr's rowid_to_column function.
+
 ```{r warning = F, message =F}
 
    library(skimr)
@@ -131,8 +140,8 @@ Another area of interest is how tweet activity has evolved over time.  Using dpl
 ```
 
 
-### 3b. Top followers
-[gt package](https://gt.rstudio.com/) and charts with ggplot.
+### Top followers
+We will first list the 10 largest followers by respective number of followers.
 ```{r warning = F, message =F}
 
    followers %>%
@@ -143,10 +152,13 @@ Another area of interest is how tweet activity has evolved over time.  Using dpl
 ```
 
 
-### 3c. Obtain geographic attributes
-Twitter provides a location for each user which can be converted using the [Google Maps API](https://developers.google.com/maps/documentation)  to geographic coordinates for mapping.  
+### Obtain follower geographic attributes
+Another interesting item to research on followers is geographic distribution.
 
-[ggmaps package](https://cran.r-project.org/web/packages/ggmap/ggmap.pdf), 
+The provided location in Twitter profile is a good starting point.  However, locations are neither standardized by level of detail (city, country) nor spelling.  Standardization is necessary to group in table or map.
+
+We will standardize at the highest level of detail, which is country, via the [Google Maps API](https://developers.google.com/maps/documentation) and accessed via the [ggmaps package](https://cran.r-project.org/web/packages/ggmap/ggmap.pdf).  If this is the first time you have accessed the Google Maps API, you will need to complete a one-time step of obtaining a free Google maps API key (instructions [here](https://rdrr.io/cran/ggmap/man/register_google.html)).
+
 ```{r warning = F, message =F}
    
    library (ggmap)
@@ -167,7 +179,8 @@ Twitter provides a location for each user which can be converted using the [Goog
 ```
 
 
-### 3d. Followers by country
+### Followers by country
+We will first identify the top follower countries and summarize in a GT table.
 ```{r warning = F, message =F}
 
    followers_agg <- followers_geo %>%
@@ -183,7 +196,8 @@ Twitter provides a location for each user which can be converted using the [Goog
 ```
 
 
-### 3e. Followers map
+### Mapping followers
+Next we will convert to a map to enable viewing the location of all users along with countries with most users.
 ```{r warning = F, message =F}
    
    library (maps)
