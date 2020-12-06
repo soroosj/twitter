@@ -1,7 +1,7 @@
 ---
-title: Twitter
+title: Twitter 
 author: Joel Soroos
-date: '2020-11-22'
+date: '2020-12-06'
 slug: twitter
 categories: []
 tags:
@@ -15,10 +15,9 @@ tags:
 
 
 ## Purpose
-The goal of this post is to source and analyze Twitter posts and followers for a given Twitter account ("handle") using R.  We will identify tweets with the most likes and retweets, as well as analyze posting trends over time.  We will also calculate the geographic distribution of Twitter followers via the Google Maps API.  
+The goal of this post is to source and analyze Twitter posts and followers for a given Twitter account ("handle") using R.  We will identify tweets with the most likes and retweets, as well as posting trends over time.  We will also calculate the geographic distribution of Twitter followers by enriching the raw Twitter data with Google Maps API attributes.  
 
 ## 1. Setup
-
 First, we need to obtain and authorize a free Twitter Developer account (instructions [here](https://cran.r-project.org/web/packages/rtweet/vignettes/auth.html)).
 
 Second step is to install and load the R [rtweet](https://cran.r-project.org/web/packages/rtweet/rtweet.pdf) package by Michael Kearney. 
@@ -29,12 +28,12 @@ We will extract Twitter data multiple times so I have created two variables to a
    
    library (rtweet)
 
-   twitter_user <- "soroosj"
+   twitter_user <- "@hadleywickham"
    sample <- 105
 ```
 
 
-## 2. Analyze number of tweets
+## 2. Analyze tweets
 ### Source tweets
 Now we will extract our first set of Twitter data, which will be tweets from our specified account.  The get_timeline function contains 90 fields on each tweet.  
 
@@ -45,7 +44,7 @@ Now we will extract our first set of Twitter data, which will be tweets from our
 
 
 ### Transform Tweets
-Many fields are not needed for this exercise so we can cull the dataset.  I have also renamed several fields for brevity and to more standard Twitter notation (i.e. likes instead of favorites).
+Many fields are not needed for this exercise so we can cull the dataset.  I have also renamed several fields for brevity and more standard Twitter notation (i.e. likes instead of favorites).
 
 We are focusing on original tweets so have filtered out retweets.
 
@@ -72,7 +71,7 @@ I have extracted year from the creation date to enable summarizing tweet volume 
 ```
 
 
-### Most liked tweets of all time  
+### Visuialize most liked tweets 
 We will sort by most liked tweets over time and rank via the dplyr row_to_column formula.
 
 The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a easy-to-read manner.  The core gt::gt function adds lines between rows.  Many other table formatting enhancements are available but out of scope for this blog.
@@ -89,7 +88,7 @@ The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a
       gt () 
 ```
 
-### Most retweeted tweets of all time  
+### Visualize most retweeted tweets
 Next we will re-sort and re-rank by retweets, again using the GT package to cleanly format.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
@@ -102,7 +101,7 @@ Next we will re-sort and re-rank by retweets, again using the GT package to clea
 ```
 
 
-### Tweet trends
+### Visualize number of tweets trends
 Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets by year.
 ```{r warning = F, message =F}
 
@@ -179,7 +178,7 @@ We will standardize at the highest level of detail, which is country, via the [G
 ```
 
 
-### Followers by country
+### Visualize followers by country
 We will first identify the top follower countries and summarize in a GT table.
 ```{r warning = F, message =F}
 
@@ -196,7 +195,7 @@ We will first identify the top follower countries and summarize in a GT table.
 ```
 
 
-### Mapping followers
+### Visualize followers on a map
 Next we will convert to a map to enable viewing the location of all users along with countries with most users.
 ```{r warning = F, message =F}
    
@@ -209,3 +208,11 @@ Next we will convert to a map to enable viewing the location of all users along 
       geom_point (data = followers_geo, aes (x = lon, y = lat), color = "blue", size = 0.75) + 
       theme_grey ()
 ```
+
+
+## 4. Potential future analyses
+We are only scratching the surface of available Twitter data, subsequent data enrichment from complementary packages and subsequent analytics.  Second generation followers (followers of followers) could easily be sourced and subtotaled to identify possile impact from a tweet.   Or Twitter users that the account follows could also be extracted.  
+
+
+## 5. Conclusion 
+R offers many powerful tools to source, analyze and visualize Twitter information.  The Twitter API (accessed via the rtweet package) enables free sourcing of follower and tweet attributes that can be easily imported into R.  The raw data can then be enriched by sourcing geographic attributes from Google's API via the ggpmap package.   Tidyverse package such as dplyr, ggplot and GT can then be leveraged to transform and visualize for insight.
