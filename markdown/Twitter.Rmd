@@ -28,18 +28,21 @@ We will extract Twitter data multiple times so I have created two variables to a
    
    library (rtweet)
 
-   twitter_user <- "@hadleywickham"
-   sample <- 105
+   twitter_user <- "@blackyellow"
 ```
 
 
 ## 2. Analyze tweets
 ### Source tweets
-Now we will extract our first set of Twitter data, which will be tweets from our specified account.  The get_timeline function contains 90 fields on each tweet.  
+Now we will extract our first set of Twitter data, which will be tweets from the Borussia Dortmund Football ("BVB") club English account.
+
+The get_timeline function contains 90 fields for each tweet.  
+
+The BVB account mosts frequently so we will limit to the last 200 tweets.
 
 ```{r , warning = FALSE, message = FALSE}
 
-   tweets_raw <- get_timeline (twitter_user, n = sample)
+   tweets_raw <- get_timeline (twitter_user, n = 500)
 ```
 
 
@@ -67,14 +70,18 @@ I have extracted year from the creation date to enable summarizing tweet volume 
          created = as.Date(created),
          year = year(created)
          ) %>%
-      select (text, year, likes, retweets, created)
+      rename(date = created) %>%
+      select (text, date, year, likes, retweets)
 ```
 
 
-### Visuialize most liked tweets 
+### Visualize most liked tweets 
 We will sort by most liked tweets over time and rank via the dplyr row_to_column formula.
 
 The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a easy-to-read manner.  The core gt::gt function adds lines between rows.  Many other table formatting enhancements are available but out of scope for this blog.
+
+The tweet with the most likes was BVB's tribute to football legend Diego Maradona, who recently passed away.
+
 ```{r chart_likes, warning = TRUE, message = FALSE}
 
    library (gt)
@@ -90,25 +97,29 @@ The [gt package](https://gt.rstudio.com/) by Richard Iannone formats tables in a
 
 ### Visualize most retweeted tweets
 Next we will re-sort and re-rank by retweets, again using the GT package to cleanly format.
+
+A tweet celebrating player Giovanni Reyna signing a contract extension earned the most retweets.  The tribute to Diego Mardona (most liked tweet) was #2 when ranking by retweets.
 ```{r chart_retweet, warning = TRUE, message = FALSE}
 
    tweets %>%
       arrange (-retweets, -likes) %>%
       head (10) %>%
       rowid_to_column("rank") %>%
-      select (rank, text, retweets, likes, created) %>%
+      select (rank, text, date, retweets, likes) %>%
       gt ()
 ```
 
 
 ### Visualize number of tweets trends
-Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets by year.
+Another area of interest is how tweet activity has evolved over time.  Using dplyr we can easily summarize by number of tweets by day.
+
+The volume of tweets was smallest during the international break when BVB does not play games.  Its players are representing their separate national teams.
 ```{r warning = F, message =F}
 
    tweets %>%
-      group_by (year) %>%
+      group_by (date) %>%
       count () %>%
-      ggplot (aes (x = year, y = n)) +
+      ggplot (aes (x = date, y = n)) +
          geom_col () +
          geom_label (aes(label = n)) +
          theme_minimal() +
@@ -129,6 +140,7 @@ We will also add a row ID ranking each follower by largest number of followers v
 
   followers <- twitter_user %>%
       get_followers() %>%
+      head (50) %>%
       pull (user_id) %>%
       lookup_users () %>%
       select (screen_name, name, location, followers_count) %>%
